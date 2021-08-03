@@ -1,3 +1,9 @@
+Add /etc/kbd to the list of directories to search for the console
+fonts, screen mappings, Unicode maps, keytable files, etc.
+
+Without this patch, kbd will only look inside
+/nix/store/<hash>-kbd-x.x.x/share.
+
 --- a/src/libkeymap/analyze.l
 +++ b/src/libkeymap/analyze.l
 @@ -109,6 +109,9 @@ static const char *const include_dirpath1[] = {
@@ -73,7 +79,7 @@
 -	                    "Files are loaded from the current directory or %s/*/.\n"),
 -	        DATADIR);
 +	                    "Files are loaded from the current directory or %s/*/ or %s/*/.\n"),
-+	        DATADIR, "/etc/kbd/");
++	        DATADIR, "/etc/kbd");
  	exit(EX_USAGE);
  }
  
