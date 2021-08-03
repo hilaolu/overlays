@@ -16,7 +16,11 @@ let
   fetchTree =
     info:
     if info.type == "github" then
-      { outPath = fetchTarball "https://api.${info.host or "github.com"}/repos/${info.owner}/${info.repo}/tarball/${info.rev}";
+      { outPath =
+          fetchTarball
+            ({ url = "https://api.${info.host or "github.com"}/repos/${info.owner}/${info.repo}/tarball/${info.rev}"; }
+             // (if info ? narHash then { sha256 = info.narHash; } else {})
+            );
         rev = info.rev;
         shortRev = builtins.substring 0 7 info.rev;
         lastModified = info.lastModified;
@@ -30,23 +34,32 @@ let
              // (if info ? rev then { inherit (info) rev; } else {})
              // (if info ? ref then { inherit (info) ref; } else {})
             );
-        rev = info.rev;
-        shortRev = builtins.substring 0 7 info.rev;
         lastModified = info.lastModified;
         lastModifiedDate = formatSecondsSinceEpoch info.lastModified;
         narHash = info.narHash;
-      }
+      } // (if info ? rev then {
+        rev = info.rev;
+        shortRev = builtins.substring 0 7 info.rev;
+      } else {
+      })
     else if info.type == "path" then
       { outPath = builtins.path { path = info.path; };
         narHash = info.narHash;
       }
     else if info.type == "tarball" then
-      { outPath = fetchTarball info.url;
-        narHash = info.narHash;
+      { outPath =
+          fetchTarball
+            ({ inherit (info) url; }
+             // (if info ? narHash then { sha256 = info.narHash; } else {})
+            );
       }
     else if info.type == "gitlab" then
       { inherit (info) rev narHash lastModified;
-        outPath = fetchTarball "https://${info.host or "gitlab.com"}/api/v4/projects/${info.owner}%2F${info.repo}/repository/archive.tar.gz?sha=${info.rev}";
+        outPath =
+          fetchTarball
+            ({ url = "https://${info.host or "gitlab.com"}/api/v4/projects/${info.owner}%2F${info.repo}/repository/archive.tar.gz?sha=${info.rev}"; }
+             // (if info ? narHash then { sha256 = info.narHash; } else {})
+            );
         shortRev = builtins.substring 0 7 info.rev;
       }
     else
@@ -78,15 +91,17 @@ let
     # tree is a valid git repository.
     tryFetchGit = src:
       if isGit && !isShallow
-      then builtins.fetchGit src
+      then
+        let res = builtins.fetchGit src;
+        in if res.rev == "0000000000000000000000000000000000000000" then removeAttrs res ["rev" "shortRev"]  else res
       else { outPath = src; };
     # NB git worktrees have a file for .git, so we don't check the type of .git
     isGit = builtins.pathExists (src + "/.git");
     isShallow = builtins.pathExists (src + "/.git/shallow");
 
   in
-    (if src ? outPath then src else tryFetchGit src)
-    // { lastModified = 0; lastModifiedDate = formatSecondsSinceEpoch 0; };
+    { lastModified = 0; lastModifiedDate = formatSecondsSinceEpoch 0; }
+      // (if src ? outPath then src else tryFetchGit src);
 
   # Format number of seconds in the Unix epoch as %Y%m%d%H%M%S.
   formatSecondsSinceEpoch = t:
