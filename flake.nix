@@ -27,10 +27,12 @@
         "dwm"
         "gaupol"
         "github-linguist"
+        "klatexformula"
         #"xorg.libX11"
         "haskellPackages.xmobar"
         "haskellPackages.termonad"
         "microsoft-edge-dev"
+        "mpv-full"
         "nix-index"
         "nixpkgs-manual"
         #"systemd"
@@ -60,9 +62,11 @@
                 then let l = attrList x;
                      in { name = last l; value = fetchAttr l nixpkgsFor.${system}.pkgs; }
                 else { name = x; value = nixpkgsFor.${system}.pkgs.${x}; })
-            (if system == "aarch64-linux" || system == "i686-linux"
-             then builtins.filter (x: x != "haskellPackages.termonad") derivations
-             else derivations))
+            #(if system == "aarch64-linux" || system == "i686-linux"
+            # then builtins.filter (x: x != "haskellPackages.termonad") derivations
+            # else derivations)
+            derivations
+          )
       );
 
       overlay = import ./overlays.nix;

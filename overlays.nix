@@ -45,7 +45,7 @@
 
       github-linguist = (import ./github-linguist { nixpkgs = prev; }).github-linguist;
 
-      haskellPackages = (prev.dontRecurseIntoAttrs prev.haskell.packages.ghc901).override {
+      haskellPackages = (prev.dontRecurseIntoAttrs prev.haskell.packages.ghc8104).override {
         overrides = self: super: with prev.haskell.lib; {
 
           xmobar = overrideCabal super.xmobar
@@ -55,24 +55,30 @@
                   });
 
           termonad = let
-            rev = "e324a361e40dfbdd87eea43e39a30e09ca058c5f";
+            rev = "d817fe47139d3b39a9c4ec1e4f27ed419214d3b3";
             src = prev.fetchFromGitHub {
-              owner = "zanculmarktum";
+              owner = "cdepillabout";
               repo = "termonad";
-              hash = "sha256-eHNkf7sdwisBvaKP6wZd1KLslp8e6Yd65rBuhOI3EgA=";
+              hash = "sha256-XIqGM64jQ+lKWcMjisVxeuKRMm2K8zKNiZ1rhdnY8pE=";
               inherit rev;
             };
-          in overrideCabal (super.callCabal2nix
-            "termonad"
-            src
-            { inherit (prev.pkgs) gtk3;
-              inherit (prev.pkgs) pcre2;
-              vte_291 = prev.pkgs.vte;
-            }
-          ) (drv: { version = builtins.substring 0 7 rev; });
+          in overrideSrc super.termonad {
+            inherit src;
+            version = builtins.substring 0 7 rev;
+          };
+          #in overrideCabal (super.callCabal2nix
+          #  "termonad"
+          #  src
+          #  { inherit (prev.pkgs) gtk3;
+          #    inherit (prev.pkgs) pcre2;
+          #    vte_291 = prev.pkgs.vte;
+          #  }
+          #) (drv: { version = builtins.substring 0 7 rev; });
 
         };
       };
+
+      klatexformula = prev.callPackage ./klatexformula { };
 
       # Fix X11 apps not respecting the cursors.
       # https://github.com/NixOS/nixpkgs/issues/24137
@@ -95,6 +101,12 @@
       #  };
 
       microsoft-edge-dev = prev.callPackage ./microsoft-edge-dev { };
+
+      mpv-full = prev.callPackage (prev.path + "/pkgs/applications/video/mpv") {
+        inherit (prev) lua;
+        inherit (prev.darwin.apple_sdk.frameworks) CoreFoundation Cocoa CoreAudio MediaPlayer;
+        ffmpeg = prev.ffmpeg-full;
+      };
 
       nix-index = prev.nix-index.override {
         nix = final.nixFlakes;
