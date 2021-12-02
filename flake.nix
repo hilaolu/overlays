@@ -31,6 +31,8 @@
         #"xorg.libX11"
         "haskellPackages.xmobar"
         "haskellPackages.termonad"
+        "microsoft-edge-stable"
+        "microsoft-edge-beta"
         "microsoft-edge-dev"
         "mpv-full"
         "nix-index"

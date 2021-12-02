@@ -1,3 +1,5 @@
+{ channel, version, revision, sha256 }:
+
 { stdenv
 , fetchurl
 , lib
@@ -30,13 +32,26 @@
 , systemd
 }:
 
+let
+
+  baseName = "microsoft-edge";
+
+  shortName = if channel == "stable"
+              then "msedge"
+              else "msedge-" + channel;
+
+  longName = if channel == "stable"
+             then baseName
+             else baseName + "-" + channel;
+
+in
+
 stdenv.mkDerivation rec {
-  pname = "microsoft-edge-dev";
-  version = "97.0.1072.13";
+  name="${baseName}-${channel}-${version}";
 
   src = fetchurl {
-    url = "https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-dev/microsoft-edge-dev_${version}-1_amd64.deb";
-    hash = "sha256-wgIiL/e3vtVgWqQQfJu5RibRUlzQZbCQQnNRZTYMMcc=";
+    url = "https://packages.microsoft.com/repos/edge/pool/main/m/${baseName}-${channel}/${baseName}-${channel}_${version}-${revision}_amd64.deb";
+    inherit sha256;
   };
 
   unpackCmd = "${binutils-unwrapped}/bin/ar p $src data.tar.xz | ${xz}/bin/xz -dc | ${gnutar}/bin/tar -xf -";
@@ -80,70 +95,73 @@ stdenv.mkDerivation rec {
     patchelf \
       --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
       --set-rpath "${libPath.msedge}" \
-      opt/microsoft/msedge-dev/msedge
+      opt/microsoft/${shortName}/msedge
 
     patchelf \
       --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-      opt/microsoft/msedge-dev/msedge-sandbox
+      opt/microsoft/${shortName}/msedge-sandbox
 
     patchelf \
       --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-      opt/microsoft/msedge-dev/msedge_crashpad_handler
+      opt/microsoft/${shortName}/msedge_crashpad_handler
 
     patchelf \
       --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
       --set-rpath "${libPath.naclHelper}" \
-      opt/microsoft/msedge-dev/nacl_helper
+      opt/microsoft/${shortName}/nacl_helper
 
     patchelf \
       --set-rpath "${libPath.libwidevinecdm}" \
-      opt/microsoft/msedge-dev/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so
+      opt/microsoft/${shortName}/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so
 
     patchelf \
       --set-rpath "${libPath.libGLESv2}" \
-      opt/microsoft/msedge-dev/libGLESv2.so
+      opt/microsoft/${shortName}/libGLESv2.so
 
     patchelf \
       --set-rpath "${libPath.libsmartscreen}" \
-      opt/microsoft/msedge-dev/libsmartscreen.so
+      opt/microsoft/${shortName}/libsmartscreen.so
 
     patchelf \
       --set-rpath "${libPath.libsmartscreenn}" \
-      opt/microsoft/msedge-dev/libsmartscreenn.so
+      opt/microsoft/${shortName}/libsmartscreenn.so
 
     patchelf \
       --set-rpath "${libPath.liboneauth}" \
-      opt/microsoft/msedge-dev/liboneauth.so
+      opt/microsoft/${shortName}/liboneauth.so
   '';
 
   installPhase = ''
     mkdir -p $out
     cp -R opt usr/bin usr/share $out
 
-    ln -sf $out/opt/microsoft/msedge-dev/microsoft-edge-dev $out/opt/microsoft/msedge-dev/microsoft-edge
-    ln -sf $out/opt/microsoft/msedge-dev/microsoft-edge-dev $out/bin/microsoft-edge-dev
+    ${if channel == "stable"
+      then ""
+      else "ln -sf $out/opt/microsoft/${shortName}/${baseName}-${channel} $out/opt/microsoft/${shortName}/${baseName}"}
+
+    ln -sf $out/opt/microsoft/${shortName}/${longName} $out/bin/${baseName}-${channel}
 
     rm -rf $out/share/doc
-    rm -rf $out/opt/microsoft/msedge-dev/cron
+    rm -rf $out/opt/microsoft/${shortName}/cron
 
-    substituteInPlace $out/share/applications/microsoft-edge-dev.desktop \
-      --replace /usr/bin/microsoft-edge-dev $out/bin/microsoft-edge-dev
+    substituteInPlace $out/share/applications/${longName}.desktop \
+      --replace /usr/bin/${baseName}-${channel} $out/bin/${baseName}-${channel}
 
-    substituteInPlace $out/share/gnome-control-center/default-apps/microsoft-edge-dev.xml \
-      --replace /opt/microsoft/msedge-dev $out/opt/microsoft/msedge-dev
+    substituteInPlace $out/share/gnome-control-center/default-apps/${longName}.xml \
+      --replace /opt/microsoft/${shortName} $out/opt/microsoft/${shortName}
 
-    substituteInPlace $out/share/menu/microsoft-edge-dev.menu \
-      --replace /opt/microsoft/msedge-dev $out/opt/microsoft/msedge-dev
+    substituteInPlace $out/share/menu/${longName}.menu \
+      --replace /opt/microsoft/${shortName} $out/opt/microsoft/${shortName}
 
-    substituteInPlace $out/opt/microsoft/msedge-dev/xdg-mime \
+    substituteInPlace $out/opt/microsoft/${shortName}/xdg-mime \
       --replace "''${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" "''${XDG_DATA_DIRS:-/run/current-system/sw/share}" \
       --replace "xdg_system_dirs=/usr/local/share/:/usr/share/" "xdg_system_dirs=/run/current-system/sw/share/" \
       --replace /usr/bin/file ${file}/bin/file
 
-    substituteInPlace $out/opt/microsoft/msedge-dev/default-app-block \
-      --replace /opt/microsoft/msedge-dev $out/opt/microsoft/msedge-dev
+    substituteInPlace $out/opt/microsoft/${shortName}/default-app-block \
+      --replace /opt/microsoft/${shortName} $out/opt/microsoft/${shortName}
 
-    substituteInPlace $out/opt/microsoft/msedge-dev/xdg-settings \
+    substituteInPlace $out/opt/microsoft/${shortName}/xdg-settings \
       --replace "''${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" "''${XDG_DATA_DIRS:-/run/current-system/sw/share}" \
       --replace "''${XDG_CONFIG_DIRS:-/etc/xdg}" "''${XDG_CONFIG_DIRS:-/run/current-system/sw/etc/xdg}"
   '';

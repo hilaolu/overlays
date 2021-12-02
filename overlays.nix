@@ -100,7 +100,9 @@
       #    });
       #  };
 
-      microsoft-edge-dev = prev.callPackage ./microsoft-edge-dev { };
+      microsoft-edge-stable = prev.callPackage (import ./edge).stable { };
+      microsoft-edge-beta = prev.callPackage (import ./edge).beta { };
+      microsoft-edge-dev = prev.callPackage (import ./edge).dev { };
 
       mpv-full = prev.callPackage (prev.path + "/pkgs/applications/video/mpv") {
         inherit (prev) lua;
