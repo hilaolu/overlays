@@ -167,7 +167,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    homepage = "https://www.microsoftedgeinsider.com/en-us/";
+    homepage = "https://www.microsoft.com/en-us/edge";
     description = "Microsoft's fork of Chromium web browser";
     license = licenses.unfree;
     platforms = [ "x86_64-linux" ];
