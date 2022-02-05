@@ -2,7 +2,7 @@
   description = "My nix overlays";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/564cb4d81d4f734dd068684adec5a60077397fe9";
+    nixpkgs.url = "github:NixOS/nixpkgs/f6ddd55d5f9d5eca08df138c248008c1ba73ecec";
   };
 
   outputs = { self, nixpkgs }:
