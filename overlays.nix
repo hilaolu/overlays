@@ -55,14 +55,21 @@
                   });
 
           termonad = let
-            rev = "d817fe47139d3b39a9c4ec1e4f27ed419214d3b3";
+            rev = "fcfcefec04e7157be8c61a398dd7839d9672abd5";
             src = prev.fetchFromGitHub {
               owner = "cdepillabout";
               repo = "termonad";
-              hash = "sha256-XIqGM64jQ+lKWcMjisVxeuKRMm2K8zKNiZ1rhdnY8pE=";
+              hash = "sha256-Y4Zm+fzyaEaybfG2i480jrWRfWmi4/JJ1bZaq3QC1zg=";
               inherit rev;
+              extraPostFetch = ''
+                (cd $out && patch -p1 -i ${./termonad/disable_alt_num_keys.patch})
+              '';
             };
-          in overrideSrc super.termonad {
+          in overrideSrc (super.callPackage ./termonad {
+            inherit (final.pkgs) gtk3;
+            inherit (final.pkgs) pcre2;
+            vte_291 = final.pkgs.vte;
+          }) {
             inherit src;
             version = builtins.substring 0 7 rev;
           };
