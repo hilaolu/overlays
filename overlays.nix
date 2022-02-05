@@ -45,7 +45,7 @@
 
       github-linguist = (import ./github-linguist { nixpkgs = prev; }).github-linguist;
 
-      haskellPackages = (prev.dontRecurseIntoAttrs prev.haskell.packages.ghc8104).override {
+      haskellPackages = (prev.dontRecurseIntoAttrs prev.haskell.packages.ghc8107).override {
         overrides = self: super: with prev.haskell.lib; {
 
           xmobar = overrideCabal super.xmobar
