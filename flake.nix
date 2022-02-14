@@ -38,6 +38,7 @@
         "nix-index"
         "nixpkgs-manual"
         #"systemd"
+        "weechat"
         "zathura"
       ];
 

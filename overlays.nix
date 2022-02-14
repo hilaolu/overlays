@@ -45,7 +45,7 @@
 
       github-linguist = (import ./github-linguist { nixpkgs = prev; }).github-linguist;
 
-      haskellPackages = (prev.dontRecurseIntoAttrs prev.haskell.packages.ghc8107).override {
+      haskellPackages = prev.haskellPackages.override {
         overrides = self: super: with prev.haskell.lib; {
 
           xmobar = overrideCabal super.xmobar
@@ -111,7 +111,7 @@
       microsoft-edge-beta = prev.callPackage (import ./edge).beta { };
       microsoft-edge-dev = prev.callPackage (import ./edge).dev { };
 
-      mpv-full = prev.callPackage (prev.path + "/pkgs/applications/video/mpv") {
+      mpv-full = prev.mpv-unwrapped.override {
         inherit (prev) lua;
         inherit (prev.darwin.apple_sdk.frameworks) CoreFoundation Cocoa CoreAudio MediaPlayer;
         ffmpeg = prev.ffmpeg-full;
@@ -126,6 +126,13 @@
       #systemd = prev.systemd.overrideAttrs (oldAttrs: {
       #  mesonFlags = oldAttrs.mesonFlags ++ [ "-Ddns-servers=''" ];
       #});
+
+      weechat = prev.weechat.override {
+        configure = { availablePlugins, ... }: {
+          plugins = builtins.attrValues availablePlugins;
+          scripts = [ final.weechatScripts.weechat-matrix ];
+        };
+      };
 
       zathura = prev.zathura.override {
         useMupdf = true;
