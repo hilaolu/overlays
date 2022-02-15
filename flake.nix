@@ -35,7 +35,6 @@
         "microsoft-edge-beta"
         "microsoft-edge-dev"
         "mpv-full"
-        "nix-index"
         "nixpkgs-manual"
         #"systemd"
         "weechat"
